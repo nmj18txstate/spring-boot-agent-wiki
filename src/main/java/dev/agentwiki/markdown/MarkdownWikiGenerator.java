@@ -27,15 +27,18 @@ public class MarkdownWikiGenerator {
             "build/dependencies.md", "build/plugins.md", "build/packaging.md", "build/java-version-and-runtime.md",
             "agent/coding-rules.md", "agent/safe-change-checklist.md", "agent/known-risk-areas.md", "agent/change-impact-analysis.md", "agent/agent-entrypoints.md");
 
-    public void generate(RepositoryScan scan, Path wikiRoot) throws IOException {
+    public int generate(RepositoryScan scan, Path wikiRoot) throws IOException {
         Files.createDirectories(wikiRoot);
         Path normalizedRoot = wikiRoot.toAbsolutePath().normalize();
+        int pageCount = 0;
         for (String wikiFile : WIKI_FILES) {
             Path output = normalizedRoot.resolve(wikiFile).normalize();
             if (!output.startsWith(normalizedRoot)) throw new IOException("Refusing to write outside wiki root: " + output);
             Files.createDirectories(output.getParent());
             Files.writeString(output, contentFor(wikiFile, scan), StandardCharsets.UTF_8);
+            pageCount++;
         }
+        return pageCount;
     }
 
     private String contentFor(String file, RepositoryScan scan) {

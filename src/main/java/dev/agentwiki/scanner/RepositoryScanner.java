@@ -20,7 +20,7 @@ import java.util.stream.Stream;
 
 public class RepositoryScanner {
 
-    private static final List<String> SKIPPED_DIRECTORIES = List.of(
+    public static final List<String> SKIPPED_DIRECTORIES = List.of(
             "target",
             "build",
             ".git",
