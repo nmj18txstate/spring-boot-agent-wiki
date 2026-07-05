@@ -4,13 +4,16 @@ import dev.agentwiki.markdown.MarkdownWikiGenerator;
 import dev.agentwiki.scanner.ComponentType;
 import dev.agentwiki.scanner.DependencyType;
 import dev.agentwiki.scanner.FileCategory;
+import dev.agentwiki.scanner.RepositoryScan;
 import dev.agentwiki.scanner.RepositoryScanner;
+import dev.agentwiki.scanner.ScannedFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Map;
 
 public class TestRunner {
     public static void main(String[] args) throws Exception {
@@ -22,6 +25,7 @@ public class TestRunner {
         writesGuidanceRequiredForMvp();
         generatesOptionalPagesWithoutMarkers();
         populatesOptionalFeaturePagesWhenMarkersDetected();
+        normalizesGeneratedKubernetesPathsToForwardSlashes();
         excludesSpringAndIntegrationTestsFromUnitTestPage();
         populatesNativeImagesAndAotPageWhenMarkersDetected();
         System.out.println("All tests passed");
@@ -244,11 +248,31 @@ public class TestRunner {
         require(Files.readString(wikiRoot.resolve("spring/scheduled-jobs.md")).contains("NightlyJob"), "scheduled page populated");
         require(Files.readString(wikiRoot.resolve("spring/security.md")).contains("pom.xml"), "security page populated");
         require(Files.readString(wikiRoot.resolve("operations/docker.md")).contains("Dockerfile"), "docker page populated");
-        String kubernetesPage = Files.readString(wikiRoot.resolve("operations/kubernetes.md"));
+        String kubernetesPage = Files.readString(wikiRoot.resolve("operations/kubernetes.md")).replace('\\', '/');
         require(kubernetesPage.contains("k8s/deployment.yaml"), "kubernetes page populated");
         require(kubernetesPage.contains("manifests/service.yml"), "manifests Kubernetes YAML populated");
         require(kubernetesPage.contains("helm/templates/configmap.yaml"), "Helm Kubernetes YAML populated");
         require(kubernetesPage.contains("deploy/ingress.yaml"), "deploy Kubernetes YAML populated");
+    }
+
+
+    private static void normalizesGeneratedKubernetesPathsToForwardSlashes() throws Exception {
+        Path repo = Files.createTempDirectory("windows-path-markdown-test");
+        Path wikiRoot = repo.resolve("spring-boot-agent-wiki");
+        RepositoryScan scan = new RepositoryScan(
+                repo,
+                fixedClock().instant(),
+                List.of(new ScannedFile(Path.of("k8s\\deployment.yaml"), FileCategory.KUBERNETES)),
+                List.of(),
+                List.of(),
+                Map.of(),
+                Map.of()
+        );
+
+        new MarkdownWikiGenerator().generate(scan, wikiRoot);
+
+        String kubernetesPage = Files.readString(wikiRoot.resolve("operations/kubernetes.md")).replace('\\', '/');
+        require(kubernetesPage.contains("k8s/deployment.yaml"), "kubernetes page normalizes Windows paths");
     }
 
     private static void excludesSpringAndIntegrationTestsFromUnitTestPage() throws Exception {
