@@ -30,7 +30,7 @@ The generated files are written only under:
 
 ## What is scanned
 
-The scanner walks the repository while skipping `target/`, `build/`, `.git/`, `.idea/`, and `node_modules/`. It inspects:
+The scanner walks the repository while skipping `target/`, `build/`, `.git/`, `.idea/`, `node_modules/`, `out/`, and `spring-boot-agent-wiki/`. It inspects:
 
 - `src/main/java`
 - `src/test/java`
@@ -44,21 +44,77 @@ The scanner walks the repository while skipping `target/`, `build/`, `.git/`, `.
 
 ## Generated wiki structure
 
+Phase 1.1 generates every page on every run. Optional pages are still created when no feature is detected, with guidance for future agents.
+
 ```text
 spring-boot-agent-wiki/
   index.md
   wiki-manifest.md
   source-links-and-staleness.md
   architecture/
+    overview.md
+    request-flow.md
+    package-boundaries.md
+    domain-modeling.md
+    dependency-map.md
+    bean-dependency-map.md
+    module-map.md
+    sequence-diagrams.md
   spring/
+    controllers.md
+    services.md
+    repositories.md
+    configuration-properties.md
+    auto-configuration-and-conditions.md
+    validation.md
+    dtos-and-serialization.md
+    time-and-deterministic-design.md
+    external-clients.md
+    scheduled-jobs.md
+    exception-handling.md
+    security.md
+    caching.md
+    messaging.md
+    events.md
   data/
+    entities.md
+    repositories.md
+    migrations.md
+    database-initialization.md
+    transaction-boundaries.md
+    query-patterns.md
+    data-consistency-rules.md
   testing/
+    unit-tests.md
+    integration-tests.md
+    test-slices.md
+    deterministic-patterns.md
+    testcontainers.md
+    mock-patterns.md
+    contract-tests.md
   operations/
+    actuator.md
+    health-readiness-liveness.md
+    profiles.md
+    logging.md
+    observability.md
+    graceful-shutdown.md
+    virtual-threads.md
+    docker.md
+    kubernetes.md
+    native-images-and-aot.md
   build/
+    dependencies.md
+    plugins.md
+    packaging.md
+    java-version-and-runtime.md
   agent/
+    coding-rules.md
+    safe-change-checklist.md
+    known-risk-areas.md
+    change-impact-analysis.md
+    agent-entrypoints.md
 ```
-
-Key pages include architecture overview, request flow, package boundaries, controllers, services, repositories, entities, migrations, transactions, deterministic test patterns, Java 21 virtual threads, dependency summaries, safe-change checklists, and coding rules for agents.
 
 ## MVP detection strategy
 
@@ -68,8 +124,7 @@ Major dependencies are detected from `pom.xml` or `build.gradle` using string ma
 
 ## Roadmap
 
-- Add richer Java parsing for method-level routes, bean graphs, and package ownership.
-- Add Gradle Kotlin DSL detection.
-- Add optional integration with LLM/Spring AI after deterministic foundations are stable.
-- Add incremental generation and staleness checks.
-- Add SARIF or JSON export for downstream agent tools.
+- Phase 1: deterministic static scanner.
+- Phase 1.1: complete wiki page structure generated on every run.
+- Phase 2: Spring AI / LLM enrichment, kept optional and layered after deterministic output.
+- Phase 3: agent integration and GitHub Action automation.

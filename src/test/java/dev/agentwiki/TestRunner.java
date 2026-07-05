@@ -20,6 +20,8 @@ public class TestRunner {
         skipsGeneratedAndToolDirectories();
         generatesExpectedMarkdownFilesInsideWikiDirectory();
         writesGuidanceRequiredForMvp();
+        generatesOptionalPagesWithoutMarkers();
+        populatesOptionalFeaturePagesWhenMarkersDetected();
         System.out.println("All tests passed");
     }
 
@@ -187,7 +189,7 @@ public class TestRunner {
         var scan = new RepositoryScanner(fixedClock()).scan(repo);
         new MarkdownWikiGenerator().generate(scan, wikiRoot);
 
-        for (String file : List.of("index.md", "wiki-manifest.md", "architecture/overview.md", "agent/coding-rules.md")) {
+        for (String file : MarkdownWikiGenerator.WIKI_FILES) {
             require(Files.exists(wikiRoot.resolve(file)), file + " generated");
         }
 
@@ -205,6 +207,36 @@ public class TestRunner {
         require(Files.readString(wikiRoot.resolve("spring/dtos-and-serialization.md")).contains("Jackson deserialization"), "Jackson guidance");
         require(Files.readString(wikiRoot.resolve("spring/time-and-deterministic-design.md")).contains("java.time.Clock"), "Clock guidance");
         require(Files.readString(wikiRoot.resolve("operations/virtual-threads.md")).contains("Java 21 virtual threads"), "virtual threads guidance");
+    }
+
+    private static void generatesOptionalPagesWithoutMarkers() throws Exception {
+        Path repo = Files.createTempDirectory("optional-empty-test");
+        Path wikiRoot = repo.resolve("spring-boot-agent-wiki");
+
+        new MarkdownWikiGenerator().generate(new RepositoryScanner(fixedClock()).scan(repo), wikiRoot);
+
+        for (String file : List.of("spring/scheduled-jobs.md", "spring/security.md", "operations/docker.md", "operations/kubernetes.md")) {
+            require(Files.exists(wikiRoot.resolve(file)), file + " optional page generated");
+            require(Files.readString(wikiRoot.resolve(file)).contains("No matching feature detected in this scan"), file + " has no-feature guidance");
+        }
+    }
+
+    private static void populatesOptionalFeaturePagesWhenMarkersDetected() throws Exception {
+        Path repo = Files.createTempDirectory("optional-marker-test");
+        Files.createDirectories(repo.resolve("src/main/java/example"));
+        Files.writeString(repo.resolve("src/main/java/example/NightlyJob.java"), "package example; class NightlyJob { @Scheduled(cron = \"0 0 * * * *\") void run() {} }");
+        Files.writeString(repo.resolve("pom.xml"), "<artifactId>spring-boot-starter-security</artifactId>");
+        Files.writeString(repo.resolve("Dockerfile"), "FROM eclipse-temurin:21-jre\n");
+        Files.createDirectories(repo.resolve("k8s"));
+        Files.writeString(repo.resolve("k8s/deployment.yaml"), "apiVersion: apps/v1\nkind: Deployment\n");
+
+        Path wikiRoot = repo.resolve("spring-boot-agent-wiki");
+        new MarkdownWikiGenerator().generate(new RepositoryScanner(fixedClock()).scan(repo), wikiRoot);
+
+        require(Files.readString(wikiRoot.resolve("spring/scheduled-jobs.md")).contains("NightlyJob"), "scheduled page populated");
+        require(Files.readString(wikiRoot.resolve("spring/security.md")).contains("pom.xml"), "security page populated");
+        require(Files.readString(wikiRoot.resolve("operations/docker.md")).contains("Dockerfile"), "docker page populated");
+        require(Files.readString(wikiRoot.resolve("operations/kubernetes.md")).contains("k8s/deployment.yaml"), "kubernetes page populated");
     }
 
     private static Clock fixedClock() {
