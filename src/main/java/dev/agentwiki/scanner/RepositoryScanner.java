@@ -127,14 +127,37 @@ public class RepositoryScanner {
         }
 
         boolean yaml = fileName.endsWith(".yaml") || fileName.endsWith(".yml");
-        boolean kubernetesPath = relative.toLowerCase().contains("k8s")
-                || relative.toLowerCase().contains("kubernetes");
-
-        if (yaml && kubernetesPath) {
+        if (yaml && isKubernetesManifest(path, relative)) {
             return Optional.of(FileCategory.KUBERNETES);
         }
 
         return Optional.empty();
+    }
+
+    private boolean isKubernetesManifest(Path path, String relative) {
+        String normalized = relative.toLowerCase();
+        boolean kubernetesPath = Stream.of("k8s/", "kubernetes/", "manifests/", "helm/", "deploy/")
+                .anyMatch(normalized::contains);
+        if (!kubernetesPath) {
+            return false;
+        }
+
+        String content = readString(path).toLowerCase();
+        return Stream.of(
+                        "apiversion",
+                        "kind",
+                        "metadata",
+                        "deployment",
+                        "service",
+                        "configmap",
+                        "secret",
+                        "ingress",
+                        "statefulset",
+                        "daemonset",
+                        "job",
+                        "cronjob",
+                        "horizontalpodautoscaler")
+                .anyMatch(content::contains);
     }
 
     private boolean isMigrationPath(String relative) {

@@ -230,7 +230,13 @@ public class TestRunner {
         Files.writeString(repo.resolve("pom.xml"), "<artifactId>spring-boot-starter-security</artifactId>");
         Files.writeString(repo.resolve("Dockerfile"), "FROM eclipse-temurin:21-jre\n");
         Files.createDirectories(repo.resolve("k8s"));
-        Files.writeString(repo.resolve("k8s/deployment.yaml"), "apiVersion: apps/v1\nkind: Deployment\n");
+        Files.writeString(repo.resolve("k8s/deployment.yaml"), "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: app\n");
+        Files.createDirectories(repo.resolve("manifests"));
+        Files.writeString(repo.resolve("manifests/service.yml"), "apiVersion: v1\nkind: Service\nmetadata:\n  name: app\n");
+        Files.createDirectories(repo.resolve("helm/templates"));
+        Files.writeString(repo.resolve("helm/templates/configmap.yaml"), "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: app\n");
+        Files.createDirectories(repo.resolve("deploy"));
+        Files.writeString(repo.resolve("deploy/ingress.yaml"), "apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: app\n");
 
         Path wikiRoot = repo.resolve("spring-boot-agent-wiki");
         new MarkdownWikiGenerator().generate(new RepositoryScanner(fixedClock()).scan(repo), wikiRoot);
@@ -238,7 +244,11 @@ public class TestRunner {
         require(Files.readString(wikiRoot.resolve("spring/scheduled-jobs.md")).contains("NightlyJob"), "scheduled page populated");
         require(Files.readString(wikiRoot.resolve("spring/security.md")).contains("pom.xml"), "security page populated");
         require(Files.readString(wikiRoot.resolve("operations/docker.md")).contains("Dockerfile"), "docker page populated");
-        require(Files.readString(wikiRoot.resolve("operations/kubernetes.md")).contains("k8s/deployment.yaml"), "kubernetes page populated");
+        String kubernetesPage = Files.readString(wikiRoot.resolve("operations/kubernetes.md"));
+        require(kubernetesPage.contains("k8s/deployment.yaml"), "kubernetes page populated");
+        require(kubernetesPage.contains("manifests/service.yml"), "manifests Kubernetes YAML populated");
+        require(kubernetesPage.contains("helm/templates/configmap.yaml"), "Helm Kubernetes YAML populated");
+        require(kubernetesPage.contains("deploy/ingress.yaml"), "deploy Kubernetes YAML populated");
     }
 
     private static void excludesSpringAndIntegrationTestsFromUnitTestPage() throws Exception {
