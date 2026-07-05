@@ -28,6 +28,41 @@ The generated files are written only under:
 /path/to/spring-boot/repo/spring-boot-agent-wiki/
 ```
 
+## Example output
+
+When run from a packaged build, the CLI prints deterministic progress and summary output:
+
+```bash
+java -jar target/spring-boot-agent-wiki-0.0.1-SNAPSHOT.jar --repo=.
+```
+
+Sample output from a medium Spring Boot service, not this repository:
+
+```text
+[INFO] Scanning repository target: /path/to/medium-spring-service
+[INFO] Pruning skipped directories: [target, build, .git, .idea, node_modules, out, spring-boot-agent-wiki]
+[INFO] Categorizing project files and processing annotation boundaries...
+[INFO] Component scan complete: Found 12 Controllers, 24 Services, 18 Repositories.
+[INFO] Generating deterministic markdown structures...
+[SUCCESS] Generated 59 agent-ready wiki pages under spring-boot-agent-wiki/
+```
+
+The generated wiki is organized under the target repository like this:
+
+```text
+spring-boot-agent-wiki/
+├── index.md
+├── wiki-manifest.md
+├── source-links-and-staleness.md
+├── architecture/
+├── spring/
+├── data/
+├── testing/
+├── operations/
+├── build/
+└── agent/
+```
+
 ## What is scanned
 
 The scanner walks the repository while skipping `target/`, `build/`, `.git/`, `.idea/`, `node_modules/`, `out/`, and `spring-boot-agent-wiki/`. It inspects:

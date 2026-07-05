@@ -28,6 +28,8 @@ public class TestRunner {
         normalizesGeneratedKubernetesPathsToForwardSlashes();
         excludesSpringAndIntegrationTestsFromUnitTestPage();
         populatesNativeImagesAndAotPageWhenMarkersDetected();
+        computesCliSummaryComponentCounts();
+        returnsGeneratedPageCountForExpectedWikiInventory();
         System.out.println("All tests passed");
     }
 
@@ -327,6 +329,37 @@ public class TestRunner {
         require(nativePage.contains("serialization-config.json"), "serialization config marker included");
         require(nativePage.contains("resource-config.json"), "resource config marker included");
         require(!nativePage.contains("No matching feature detected in this scan"), "native page omits no-feature text when markers exist");
+    }
+
+    private static void computesCliSummaryComponentCounts() throws Exception {
+        Path repo = Files.createTempDirectory("cli-summary-count-test");
+        Files.createDirectories(repo.resolve("src/main/java/example"));
+        Files.writeString(repo.resolve("src/main/java/example/RestOrdersController.java"), "package example; @RestController class RestOrdersController {}");
+        Files.writeString(repo.resolve("src/main/java/example/ViewController.java"), "package example; @Controller class ViewController {}");
+        Files.writeString(repo.resolve("src/main/java/example/OrderService.java"), "package example; @Service class OrderService {}");
+        Files.writeString(repo.resolve("src/main/java/example/HelperComponent.java"), "package example; @Component class HelperComponent {}");
+        Files.writeString(repo.resolve("src/main/java/example/OrderRepository.java"), "package example; @Repository interface OrderRepository {}");
+
+        RepositoryScan scan = new RepositoryScanner(fixedClock()).scan(repo);
+
+        require(SpringBootAgentWikiApplication.controllerCount(scan) == 2, "CLI controller count includes RestController and Controller");
+        require(SpringBootAgentWikiApplication.serviceCount(scan) == 1, "CLI service count includes only Service components");
+        require(SpringBootAgentWikiApplication.repositoryCount(scan) == 1, "CLI repository count includes Repository components");
+    }
+
+    private static void returnsGeneratedPageCountForExpectedWikiInventory() throws Exception {
+        Path repo = Files.createTempDirectory("wiki-page-count-test");
+        Path wikiRoot = repo.resolve("spring-boot-agent-wiki");
+        RepositoryScan scan = new RepositoryScanner(fixedClock()).scan(repo);
+
+        int generatedPages = new MarkdownWikiGenerator().generate(scan, wikiRoot);
+        long markdownFilesOnDisk;
+        try (var files = Files.walk(wikiRoot)) {
+            markdownFilesOnDisk = files.filter(Files::isRegularFile).filter(path -> path.getFileName().toString().endsWith(".md")).count();
+        }
+
+        require(generatedPages == MarkdownWikiGenerator.WIKI_FILES.size(), "generated page count matches wiki inventory size");
+        require(markdownFilesOnDisk == MarkdownWikiGenerator.WIKI_FILES.size(), "markdown files on disk match wiki inventory size");
     }
 
     private static Clock fixedClock() {
