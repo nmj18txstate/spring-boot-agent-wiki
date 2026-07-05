@@ -48,72 +48,72 @@ Phase 1.1 generates every page on every run. Optional pages are still created wh
 
 ```text
 spring-boot-agent-wiki/
-  index.md
-  wiki-manifest.md
-  source-links-and-staleness.md
-  architecture/
-    overview.md
-    request-flow.md
-    package-boundaries.md
-    domain-modeling.md
-    dependency-map.md
-    bean-dependency-map.md
-    module-map.md
-    sequence-diagrams.md
-  spring/
-    controllers.md
-    services.md
-    repositories.md
-    configuration-properties.md
-    auto-configuration-and-conditions.md
-    validation.md
-    dtos-and-serialization.md
-    time-and-deterministic-design.md
-    external-clients.md
-    scheduled-jobs.md
-    exception-handling.md
-    security.md
-    caching.md
-    messaging.md
-    events.md
-  data/
-    entities.md
-    repositories.md
-    migrations.md
-    database-initialization.md
-    transaction-boundaries.md
-    query-patterns.md
-    data-consistency-rules.md
-  testing/
-    unit-tests.md
-    integration-tests.md
-    test-slices.md
-    deterministic-patterns.md
-    testcontainers.md
-    mock-patterns.md
-    contract-tests.md
-  operations/
-    actuator.md
-    health-readiness-liveness.md
-    profiles.md
-    logging.md
-    observability.md
-    graceful-shutdown.md
-    virtual-threads.md
-    docker.md
-    kubernetes.md
-    native-images-and-aot.md
-  build/
-    dependencies.md
-    plugins.md
-    packaging.md
-    java-version-and-runtime.md
-  agent/
-    coding-rules.md
-    safe-change-checklist.md
-    known-risk-areas.md
-    change-impact-analysis.md
-    agent-entrypoints.md
+├── index.md
+├── wiki-manifest.md
+├── source-links-and-staleness.md
+├── architecture/
+│   ├── overview.md
+│   ├── request-flow.md
+│   ├── package-boundaries.md
+│   ├── domain-modeling.md
+│   ├── dependency-map.md
+│   ├── bean-dependency-map.md
+│   ├── module-map.md
+│   └── sequence-diagrams.md
+├── spring/
+│   ├── controllers.md
+│   ├── services.md
+│   ├── repositories.md
+│   ├── configuration-properties.md
+│   ├── auto-configuration-and-conditions.md
+│   ├── validation.md
+│   ├── dtos-and-serialization.md
+│   ├── time-and-deterministic-design.md
+│   ├── external-clients.md
+│   ├── scheduled-jobs.md
+│   ├── exception-handling.md
+│   ├── security.md
+│   ├── caching.md
+│   ├── messaging.md
+│   └── events.md
+├── data/
+│   ├── entities.md
+│   ├── repositories.md
+│   ├── migrations.md
+│   ├── database-initialization.md
+│   ├── transaction-boundaries.md
+│   ├── query-patterns.md
+│   └── data-consistency-rules.md
+├── testing/
+│   ├── unit-tests.md
+│   ├── integration-tests.md
+│   ├── test-slices.md
+│   ├── deterministic-patterns.md
+│   ├── testcontainers.md
+│   ├── mock-patterns.md
+│   └── contract-tests.md
+├── operations/
+│   ├── actuator.md
+│   ├── health-readiness-liveness.md
+│   ├── profiles.md
+│   ├── logging.md
+│   ├── observability.md
+│   ├── graceful-shutdown.md
+│   ├── virtual-threads.md
+│   ├── docker.md
+│   ├── kubernetes.md
+│   └── native-images-and-aot.md
+├── build/
+│   ├── dependencies.md
+│   ├── plugins.md
+│   ├── packaging.md
+│   └── java-version-and-runtime.md
+└── agent/
+    ├── coding-rules.md
+    ├── safe-change-checklist.md
+    ├── known-risk-areas.md
+    ├── change-impact-analysis.md
+    └── agent-entrypoints.md
 ```
 
 ## MVP detection strategy
