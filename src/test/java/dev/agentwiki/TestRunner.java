@@ -22,6 +22,8 @@ public class TestRunner {
         writesGuidanceRequiredForMvp();
         generatesOptionalPagesWithoutMarkers();
         populatesOptionalFeaturePagesWhenMarkersDetected();
+        excludesSpringAndIntegrationTestsFromUnitTestPage();
+        populatesNativeImagesAndAotPageWhenMarkersDetected();
         System.out.println("All tests passed");
     }
 
@@ -237,6 +239,60 @@ public class TestRunner {
         require(Files.readString(wikiRoot.resolve("spring/security.md")).contains("pom.xml"), "security page populated");
         require(Files.readString(wikiRoot.resolve("operations/docker.md")).contains("Dockerfile"), "docker page populated");
         require(Files.readString(wikiRoot.resolve("operations/kubernetes.md")).contains("k8s/deployment.yaml"), "kubernetes page populated");
+    }
+
+    private static void excludesSpringAndIntegrationTestsFromUnitTestPage() throws Exception {
+        Path repo = Files.createTempDirectory("unit-test-filter-test");
+        Files.createDirectories(repo.resolve("src/test/java/example"));
+        Files.writeString(repo.resolve("src/test/java/example/OrderServiceTest.java"), "package example; class OrderServiceTest {}");
+        Files.writeString(repo.resolve("src/test/java/example/OrderIntegrationTest.java"), "package example; class OrderIntegrationTest {}");
+        Files.writeString(repo.resolve("src/test/java/example/ApplicationTest.java"), "package example; @SpringBootTest class ApplicationTest {}");
+        Files.writeString(repo.resolve("src/test/java/example/OrderControllerTest.java"), "package example; @WebMvcTest class OrderControllerTest {}");
+        Files.writeString(repo.resolve("src/test/java/example/OrderRepositoryTest.java"), "package example; @DataJpaTest class OrderRepositoryTest {}");
+        Files.writeString(repo.resolve("src/test/java/example/OrderJsonTest.java"), "package example; @JsonTest class OrderJsonTest {}");
+        Files.writeString(repo.resolve("src/test/java/example/ClientTest.java"), "package example; @RestClientTest class ClientTest {}");
+        Files.writeString(repo.resolve("src/test/java/example/PostgresTest.java"), "package example; class PostgresTest { Testcontainers containers; }");
+        Files.writeString(repo.resolve("src/test/java/example/WireMockContractTest.java"), "package example; class WireMockContractTest { WireMock server; Pact pact; }");
+        Files.writeString(repo.resolve("src/test/java/example/SpringCloudContractTest.java"), "package example; class SpringCloudContractTest { String marker = \"Spring Cloud Contract\"; }");
+
+        Path wikiRoot = repo.resolve("spring-boot-agent-wiki");
+        new MarkdownWikiGenerator().generate(new RepositoryScanner(fixedClock()).scan(repo), wikiRoot);
+
+        String unitTests = Files.readString(wikiRoot.resolve("testing/unit-tests.md"));
+        require(unitTests.contains("OrderServiceTest.java"), "plain unit test included");
+        require(!unitTests.contains("OrderIntegrationTest.java"), "integration test excluded from unit test page");
+        require(!unitTests.contains("ApplicationTest.java"), "SpringBootTest excluded from unit test page");
+        require(!unitTests.contains("OrderControllerTest.java"), "WebMvcTest excluded from unit test page");
+        require(!unitTests.contains("OrderRepositoryTest.java"), "DataJpaTest excluded from unit test page");
+        require(!unitTests.contains("OrderJsonTest.java"), "JsonTest excluded from unit test page");
+        require(!unitTests.contains("ClientTest.java"), "RestClientTest excluded from unit test page");
+        require(!unitTests.contains("PostgresTest.java"), "Testcontainers test excluded from unit test page");
+        require(!unitTests.contains("WireMockContractTest.java"), "WireMock/Pact contract test excluded from unit test page");
+        require(!unitTests.contains("SpringCloudContractTest.java"), "Spring Cloud Contract test excluded from unit test page");
+    }
+
+    private static void populatesNativeImagesAndAotPageWhenMarkersDetected() throws Exception {
+        Path repo = Files.createTempDirectory("native-aot-marker-test");
+        Files.createDirectories(repo.resolve("src/main/java/example"));
+        Files.createDirectories(repo.resolve("src/main/resources/META-INF/native-image"));
+        Files.writeString(repo.resolve("pom.xml"), "<artifactId>native-maven-plugin</artifactId><groupId>org.graalvm.buildtools</groupId><goal>process-aot</goal>");
+        Files.writeString(repo.resolve("src/main/java/example/AppRuntimeHints.java"), "package example; class AppRuntimeHints implements RuntimeHintsRegistrar { void hints(RuntimeHints hints) { hints.reflection(); } }");
+        Files.writeString(repo.resolve("src/main/resources/META-INF/native-image/reflection-config.json"), "[]");
+        Files.writeString(repo.resolve("src/main/resources/META-INF/native-image/proxy-config.json"), "[]");
+        Files.writeString(repo.resolve("src/main/resources/META-INF/native-image/serialization-config.json"), "[]");
+        Files.writeString(repo.resolve("src/main/resources/META-INF/native-image/resource-config.json"), "{}");
+
+        Path wikiRoot = repo.resolve("spring-boot-agent-wiki");
+        new MarkdownWikiGenerator().generate(new RepositoryScanner(fixedClock()).scan(repo), wikiRoot);
+
+        String nativePage = Files.readString(wikiRoot.resolve("operations/native-images-and-aot.md"));
+        require(nativePage.contains("pom.xml"), "native build plugin marker included");
+        require(nativePage.contains("AppRuntimeHints.java"), "RuntimeHints marker included");
+        require(nativePage.contains("reflection-config.json"), "reflection config marker included");
+        require(nativePage.contains("proxy-config.json"), "proxy config marker included");
+        require(nativePage.contains("serialization-config.json"), "serialization config marker included");
+        require(nativePage.contains("resource-config.json"), "resource config marker included");
+        require(!nativePage.contains("No matching feature detected in this scan"), "native page omits no-feature text when markers exist");
     }
 
     private static Clock fixedClock() {
