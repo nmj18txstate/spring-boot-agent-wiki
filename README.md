@@ -36,13 +36,13 @@ When run from a packaged build, the CLI prints deterministic progress and summar
 java -jar target/spring-boot-agent-wiki-0.0.1-SNAPSHOT.jar --repo=.
 ```
 
-Sample output from a medium Spring Boot service, not this repository:
+Sample output: When run from a packaged build, the CLI prints deterministic progress and summary output:
 
 ```text
 [INFO] Scanning repository target: /path/to/medium-spring-service
 [INFO] Pruning skipped directories: [target, build, .git, .idea, node_modules, out, spring-boot-agent-wiki]
 [INFO] Categorizing project files and processing annotation boundaries...
-[INFO] Component scan complete: Found 12 Controllers, 24 Services, 18 Repositories.
+[INFO] Component scan complete: Found 4 Controllers, 2 Services, 2 Repositories.
 [INFO] Generating deterministic markdown structures...
 [SUCCESS] Generated 59 agent-ready wiki pages under spring-boot-agent-wiki/
 ```
