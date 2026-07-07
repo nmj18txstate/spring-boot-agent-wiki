@@ -151,6 +151,7 @@ Open these files first:
 ```text
 spring-boot-agent-wiki/index.md
 spring-boot-agent-wiki/agent/agent-entrypoints.md
+spring-boot-agent-wiki/agent/coding-rules.md
 spring-boot-agent-wiki/agent/safe-change-checklist.md
 ```
 
