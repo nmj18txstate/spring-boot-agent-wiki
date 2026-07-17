@@ -18,7 +18,7 @@ spring-boot-agent-wiki/
 The generated wiki helps agents avoid repeatedly rediscovering architecture from raw source files. It gives a repeatable workflow:
 
 ```text
-install CLI
+install pinned CLI release
   -> run against target repository
   -> read relevant generated wiki pages
   -> modify code safely
@@ -45,13 +45,63 @@ Do not use this skill as a replacement for reading the touched source code. The 
 
 Install the CLI outside the target project you want to scan.
 
-## Option A: Build from source
+Use the pinned `v1.0.0` release unless you intentionally need to build the tool from source.
+
+## Option A: Download the pinned release JAR
+
+Recommended version:
+
+```text
+v1.0.0
+```
+
+Unix/macOS:
+
+```bash
+curl -L -o spring-boot-agent-wiki-1.0.0.jar https://github.com/nmj18txstate/spring-boot-agent-wiki/releases/download/v1.0.0/spring-boot-agent-wiki-1.0.0.jar
+```
+
+Windows CMD:
+
+```bat
+powershell -NoProfile -Command "Invoke-WebRequest -Uri 'https://github.com/nmj18txstate/spring-boot-agent-wiki/releases/download/v1.0.0/spring-boot-agent-wiki-1.0.0.jar' -OutFile 'spring-boot-agent-wiki-1.0.0.jar'"
+```
+
+Verify the downloaded JAR:
+
+Unix/macOS:
+
+```bash
+java -jar spring-boot-agent-wiki-1.0.0.jar --repo=/path/to/target-spring-boot-repo
+```
+
+Windows CMD:
+
+```bat
+java -jar spring-boot-agent-wiki-1.0.0.jar --repo=C:\path\to\target-spring-boot-repo
+```
+
+Expected output includes:
+
+```text
+[INFO] Scanning repository target: /path/to/target-spring-boot-repo
+[INFO] Pruning skipped directories: [target, build, .git, .idea, node_modules, out, spring-boot-agent-wiki]
+[INFO] Categorizing project files and processing annotation boundaries...
+[INFO] Component scan complete: Found <n> Controllers, <n> Services, <n> Repositories.
+[INFO] Generating deterministic markdown structures...
+[SUCCESS] Generated <n> agent-ready wiki pages under spring-boot-agent-wiki/
+```
+
+## Option B: Build the pinned release from source
+
+Use this only when a local source build is needed.
 
 Unix/macOS:
 
 ```bash
 git clone https://github.com/nmj18txstate/spring-boot-agent-wiki.git
 cd spring-boot-agent-wiki
+git checkout v1.0.0
 mvn clean package
 ```
 
@@ -60,29 +110,30 @@ Windows CMD:
 ```bat
 git clone https://github.com/nmj18txstate/spring-boot-agent-wiki.git
 cd spring-boot-agent-wiki
+git checkout v1.0.0
 mvn clean package
 ```
 
 The runnable JAR is created at:
 
 ```text
-target/spring-boot-agent-wiki-0.0.1-SNAPSHOT.jar
+target/spring-boot-agent-wiki-1.0.0.jar
 ```
 
-## Verify the CLI build
+Verify the source build:
 
 Unix/macOS:
 
 ```bash
 java -cp target/classes:target/test-classes dev.agentwiki.TestRunner
-java -jar target/spring-boot-agent-wiki-0.0.1-SNAPSHOT.jar --repo=.
+java -jar target/spring-boot-agent-wiki-1.0.0.jar --repo=.
 ```
 
 Windows CMD:
 
 ```bat
 java -cp target\classes;target\test-classes dev.agentwiki.TestRunner
-java -jar target\spring-boot-agent-wiki-0.0.1-SNAPSHOT.jar --repo=.
+java -jar target\spring-boot-agent-wiki-1.0.0.jar --repo=.
 ```
 
 Expected output includes:
@@ -103,13 +154,13 @@ Do not assume the tool repository and target repository are the same.
 ## Unix/macOS
 
 ```bash
-java -jar /path/to/spring-boot-agent-wiki/target/spring-boot-agent-wiki-0.0.1-SNAPSHOT.jar --repo=/path/to/target-spring-boot-repo
+java -jar /path/to/spring-boot-agent-wiki-1.0.0.jar --repo=/path/to/target-spring-boot-repo
 ```
 
 ## Windows CMD
 
 ```bat
-java -jar C:\path\to\spring-boot-agent-wiki\target\spring-boot-agent-wiki-0.0.1-SNAPSHOT.jar --repo=C:\path\to\target-spring-boot-repo
+java -jar C:\path\to\spring-boot-agent-wiki-1.0.0.jar --repo=C:\path\to\target-spring-boot-repo
 ```
 
 The tool writes generated markdown only under the target repository's:
@@ -138,10 +189,18 @@ Before editing code in the target Spring Boot repository, follow this workflow.
 
 ## 1. Generate or refresh the wiki
 
-Run the CLI against the target repo:
+Run the pinned CLI release against the target repo.
+
+Unix/macOS:
 
 ```bash
-java -jar /path/to/spring-boot-agent-wiki/target/spring-boot-agent-wiki-0.0.1-SNAPSHOT.jar --repo=/path/to/target-spring-boot-repo
+java -jar /path/to/spring-boot-agent-wiki-1.0.0.jar --repo=/path/to/target-spring-boot-repo
+```
+
+Windows CMD:
+
+```bat
+java -jar C:\path\to\spring-boot-agent-wiki-1.0.0.jar --repo=C:\path\to\target-spring-boot-repo
 ```
 
 ## 2. Start with the generated entrypoints
@@ -174,6 +233,7 @@ For service or business-logic changes, read:
 spring-boot-agent-wiki/spring/services.md
 spring-boot-agent-wiki/architecture/request-flow.md
 spring-boot-agent-wiki/data/transaction-boundaries.md
+spring-boot-agent-wiki/agent/coding-rules.md
 spring-boot-agent-wiki/agent/safe-change-checklist.md
 ```
 
@@ -265,10 +325,18 @@ Refresh after changing:
 - Build files
 - README or architecture documentation
 
-Run:
+Run the pinned CLI release again.
+
+Unix/macOS:
 
 ```bash
-java -jar /path/to/spring-boot-agent-wiki/target/spring-boot-agent-wiki-0.0.1-SNAPSHOT.jar --repo=/path/to/target-spring-boot-repo
+java -jar /path/to/spring-boot-agent-wiki-1.0.0.jar --repo=/path/to/target-spring-boot-repo
+```
+
+Windows CMD:
+
+```bat
+java -jar C:\path\to\spring-boot-agent-wiki-1.0.0.jar --repo=C:\path\to\target-spring-boot-repo
 ```
 
 Then inspect the generated wiki diff.
@@ -343,15 +411,23 @@ When changing Java records used as DTOs or domain snapshots:
 Before finalizing a code change in the target repository:
 
 1. Run the project's normal tests.
-2. Rerun the Spring Boot Agent Wiki CLI.
+2. Rerun the pinned Spring Boot Agent Wiki CLI release.
 3. Review the generated wiki diff.
 4. Confirm the changed layer's wiki pages still match the source.
 5. Mention whether wiki files were regenerated or intentionally left unchanged.
 
-Example final command:
+Example final commands:
+
+Unix/macOS:
 
 ```bash
-java -jar /path/to/spring-boot-agent-wiki/target/spring-boot-agent-wiki-0.0.1-SNAPSHOT.jar --repo=/path/to/target-spring-boot-repo
+java -jar /path/to/spring-boot-agent-wiki-1.0.0.jar --repo=/path/to/target-spring-boot-repo
+```
+
+Windows CMD:
+
+```bat
+java -jar C:\path\to\spring-boot-agent-wiki-1.0.0.jar --repo=C:\path\to\target-spring-boot-repo
 ```
 
 Expected success output:
